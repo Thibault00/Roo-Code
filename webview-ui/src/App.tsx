@@ -3,12 +3,12 @@ import { useEvent } from "react-use"
 import { ExtensionMessage } from "../../src/shared/ExtensionMessage"
 import ChatView from "./components/chat/ChatView"
 import HistoryView from "./components/history/HistoryView"
+import McpView from "./components/mcp/McpView"
+import PromptsView from "./components/prompts/PromptsView"
 import SettingsView from "./components/settings/SettingsView"
 import WelcomeView from "./components/welcome/WelcomeView"
 import { ExtensionStateContextProvider, useExtensionState } from "./context/ExtensionStateContext"
 import { vscode } from "./utils/vscode"
-import McpView from "./components/mcp/McpView"
-import PromptsView from "./components/prompts/PromptsView"
 
 const AppContent = () => {
 	const { didHydrateState, showWelcome, shouldShowAnnouncement } = useExtensionState()

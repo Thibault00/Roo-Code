@@ -1,6 +1,6 @@
 import { Anthropic } from "@anthropic-ai/sdk"
-import delay from "delay"
 import axios from "axios"
+import delay from "delay"
 import fs from "fs/promises"
 import os from "os"
 import pWaitFor from "p-wait-for"
@@ -11,29 +11,29 @@ import { downloadTask } from "../../integrations/misc/export-markdown"
 import { openFile, openImage } from "../../integrations/misc/open-file"
 import { selectImages } from "../../integrations/misc/process-images"
 import { getTheme } from "../../integrations/theme/getTheme"
-import { getDiffStrategy } from "../diff/DiffStrategy"
 import WorkspaceTracker from "../../integrations/workspace/WorkspaceTracker"
 import { McpHub } from "../../services/mcp/McpHub"
 import { ApiConfiguration, ApiProvider, ModelInfo } from "../../shared/api"
 import { findLast } from "../../shared/array"
+import { checkExistKey } from "../../shared/checkExistApiConfig"
+import { EXPERIMENT_IDS, ExperimentId, experiments as Experiments, experimentDefault } from "../../shared/experiments"
 import { ApiConfigMeta, ExtensionMessage } from "../../shared/ExtensionMessage"
 import { HistoryItem } from "../../shared/HistoryItem"
+import { CustomModePrompts, Mode, PromptComponent, defaultModeSlug } from "../../shared/modes"
+import { CustomSupportPrompts, supportPrompt } from "../../shared/support-prompt"
 import { WebviewMessage } from "../../shared/WebviewMessage"
-import { Mode, CustomModePrompts, PromptComponent, defaultModeSlug } from "../../shared/modes"
-import { SYSTEM_PROMPT } from "../prompts/system"
 import { fileExistsAtPath } from "../../utils/fs"
-import { Cline } from "../Cline"
-import { openMention } from "../mentions"
-import { getNonce } from "./getNonce"
-import { getUri } from "./getUri"
-import { playSound, setSoundEnabled, setSoundVolume } from "../../utils/sound"
-import { checkExistKey } from "../../shared/checkExistApiConfig"
-import { singleCompletionHandler } from "../../utils/single-completion-handler"
 import { searchCommits } from "../../utils/git"
+import { singleCompletionHandler } from "../../utils/single-completion-handler"
+import { playSound, setSoundEnabled, setSoundVolume } from "../../utils/sound"
+import { Cline } from "../Cline"
 import { ConfigManager } from "../config/ConfigManager"
 import { CustomModesManager } from "../config/CustomModesManager"
-import { EXPERIMENT_IDS, experiments as Experiments, experimentDefault, ExperimentId } from "../../shared/experiments"
-import { CustomSupportPrompts, supportPrompt } from "../../shared/support-prompt"
+import { getDiffStrategy } from "../diff/DiffStrategy"
+import { openMention } from "../mentions"
+import { SYSTEM_PROMPT } from "../prompts/system"
+import { getNonce } from "./getNonce"
+import { getUri } from "./getUri"
 
 import { ACTION_NAMES } from "../CodeActionProvider"
 
@@ -1439,6 +1439,12 @@ export class ClineProvider implements vscode.WebviewViewProvider {
 			const config = listApiConfig?.find((c) => c.name === currentApiConfigName)
 			if (config?.id) {
 				await this.configManager.setModeConfig(mode, config.id)
+
+				// Add immediate state refresh after config changes
+				if (this.cline) {
+					this.cline.api = buildApiHandler(apiConfiguration)
+				}
+				await this.postStateToWebview()
 			}
 		}
 
